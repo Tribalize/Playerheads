@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,6 +16,17 @@ class ManifestTests(unittest.TestCase):
 
         self.assertEqual(set(ids), set(UUID_KEYS))
         self.assertEqual(ids, loaded)
+
+    def test_load_or_create_ids_rewrites_invalid_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "playerheads_ids.json"
+            path.write_text("{", encoding="utf-8")
+
+            ids = load_or_create_ids(path)
+            written = json.loads(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(set(ids), set(UUID_KEYS))
+        self.assertEqual(ids, written)
 
     def test_manifests_link_behavior_and_resource_packs(self):
         ids = {

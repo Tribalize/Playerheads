@@ -105,6 +105,7 @@ Trader support is controlled for the whole build:
 
 - Disabled by default.
 - Enabled by `--include-trader-trades`.
+- When enabled, trader trades include all selected heads in the build.
 
 When enabled, the generator writes `Playerheads_BP/trading/economy_trades/wandering_trader_trades.json` using the existing safe pattern: preserve vanilla wandering trader groups and append a custom head group in the same tier.
 
@@ -150,7 +151,7 @@ Workflow inputs:
 - `player_names`: optional comma-separated Bedrock gamertags.
 - `heads_file`: default `heads.json` when `player_names` is empty.
 - `version`: required version string.
-- `include_trader_trades`: boolean default `false`.
+- `include_trader_trades`: boolean default `false`; set to `true` to pass `--include-trader-trades` and generate wandering trader trades for all selected heads.
 
 Because live BedrockViewer calls can be rate-limited or temporarily protected, tests should not depend on the live service.
 
@@ -173,4 +174,4 @@ Initial tests should cover:
 - This belongs in `Tribalize/Playerheads`, not `Tribalize/StreamerHeads`.
 - The generator uses BedrockViewer only.
 - The trader option applies to the whole build, not individual players.
-- Trader trades are disabled by default and can be enabled with `--include-trader-trades`.
+- Trader trades are disabled by default; `--include-trader-trades` or Actions `include_trader_trades: true` enables trades for all selected heads.

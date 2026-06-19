@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from urllib.parse import quote
 
 
 PROFILE_URL = "https://bedrockviewer.com/profile/{gamertag}/json"
 SKIN_DOWNLOAD_URL = "https://bedrockviewer.com/download-skin/{xuid}"
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 
 @dataclass(frozen=True)
@@ -21,7 +23,7 @@ class BedrockViewerClient:
 
     @staticmethod
     def profile_url(gamertag: str) -> str:
-        return PROFILE_URL.format(gamertag=gamertag)
+        return PROFILE_URL.format(gamertag=quote(str(gamertag), safe=""))
 
     @staticmethod
     def skin_download_url(xuid: str) -> str:
@@ -32,7 +34,12 @@ class BedrockViewerClient:
         response = self.session.get(url, timeout=self.timeout)
         if response.status_code != 200:
             raise ValueError(f"BedrockViewer profile request failed for {gamertag}: HTTP {response.status_code} at {url}")
-        data = response.json()
+        try:
+            data = response.json()
+        except Exception as exc:
+            raise ValueError(f"BedrockViewer profile for {gamertag} returned invalid JSON at {url}") from exc
+        if not isinstance(data, dict):
+            raise ValueError(f"BedrockViewer profile for {gamertag} returned invalid JSON at {url}")
         xuid = str(data.get("XUID") or "").strip()
         if not xuid:
             keys = ", ".join(sorted(str(key) for key in data.keys()))
@@ -48,6 +55,8 @@ class BedrockViewerClient:
         content_type = str(response.headers.get("Content-Type", "")).lower()
         if "image/png" not in content_type:
             raise ValueError(f"BedrockViewer skin download for XUID {xuid} did not return image/png. Content-Type: {content_type}")
+        if not response.content.startswith(PNG_SIGNATURE):
+            raise ValueError(f"BedrockViewer skin download for XUID {xuid} did not return PNG data.")
         return response.content
 
 

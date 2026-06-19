@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+BPH_BP/
+BPH_RP/
+Playerheads_BP/
+Playerheads_RP/
+dist/
+*.mcaddon

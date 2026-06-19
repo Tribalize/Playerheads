@@ -42,7 +42,7 @@ def _head_from_entry(entry) -> Head:
 
 def heads_from_names(names: str) -> list[Head]:
     raw_parts = re.split(r"[,\n]", names or "")
-    if any(part == "" for part in raw_parts[1:-1]):
+    if any(not part.strip() for part in raw_parts[1:-1]):
         raise ValueError("Empty head name found in comma-separated input.")
     heads = [_head_from_entry(part) for part in raw_parts if part.strip()]
     if not heads:

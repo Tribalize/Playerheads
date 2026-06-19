@@ -45,6 +45,10 @@ class HeadParserTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             heads_from_names("PPTribalize,,   ")
 
+    def test_rejects_whitespace_only_embedded_head_name(self):
+        with self.assertRaises(ValueError):
+            heads_from_names("PPTribalize,   ,LuckyCroi")
+
 
 if __name__ == "__main__":
     unittest.main()

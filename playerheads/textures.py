@@ -13,11 +13,18 @@ OUTPUT_ICON_SIZE = (64, 64)
 
 def load_skin_image(skin_bytes: bytes) -> Image.Image:
     try:
-        image = Image.open(io.BytesIO(skin_bytes)).convert("RGBA")
+        with Image.open(io.BytesIO(skin_bytes)) as image:
+            image_format = image.format
+            image_size = image.size
+            if image_format != "PNG":
+                raise ValueError(f"Skin image must be PNG, got {image_format or 'unknown'}.")
+            if image_size[0] != 64 or image_size[1] not in (32, 64):
+                raise ValueError(f"Unexpected skin size {image_size}. Expected 64x64 or 64x32.")
+            image = image.convert("RGBA").copy()
+    except ValueError:
+        raise
     except Exception as exc:
         raise ValueError(f"Skin PNG could not be opened: {exc}") from exc
-    if image.width != 64 or image.height not in (32, 64):
-        raise ValueError(f"Unexpected skin size {image.size}. Expected 64x64 or 64x32.")
     if image.height == 32:
         padded = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
         padded.paste(image, (0, 0))

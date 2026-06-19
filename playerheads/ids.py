@@ -8,6 +8,18 @@ import uuid
 UUID_KEYS = ("rp_header", "rp_module", "bp_header", "bp_module", "bp_script")
 
 
+def _normalize_ids(data: object) -> dict[str, str] | None:
+    if not isinstance(data, dict):
+        return None
+    ids = {}
+    for key in UUID_KEYS:
+        try:
+            ids[key] = str(uuid.UUID(str(data[key])))
+        except (KeyError, TypeError, ValueError, AttributeError):
+            return None
+    return ids
+
+
 def load_or_create_ids(path: str | Path) -> dict[str, str]:
     path = Path(path)
     if path.is_file():
@@ -15,8 +27,9 @@ def load_or_create_ids(path: str | Path) -> dict[str, str]:
             data = json.loads(path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             data = None
-        if isinstance(data, dict) and all(key in data for key in UUID_KEYS):
-            return {key: str(data[key]) for key in UUID_KEYS}
+        ids = _normalize_ids(data)
+        if ids is not None:
+            return ids
     data = {key: str(uuid.uuid4()) for key in UUID_KEYS}
     path.write_text(json.dumps(data, indent=4) + "\n", encoding="utf-8")
     return data

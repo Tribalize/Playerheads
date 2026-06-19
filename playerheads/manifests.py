@@ -12,15 +12,15 @@ def build_rp_manifest(ids: dict[str, str], version: list[int]) -> dict:
             "name": "Playerheads_RP",
             "description": "BedrockViewer-powered player head resources.",
             "uuid": ids["rp_header"],
-            "version": version,
-            "min_engine_version": ENGINE_VERSION,
+            "version": list(version),
+            "min_engine_version": list(ENGINE_VERSION),
         },
         "capabilities": ["pbr"],
         "modules": [
-            {"type": "resources", "uuid": ids["rp_module"], "version": version}
+            {"type": "resources", "uuid": ids["rp_module"], "version": list(version)}
         ],
         "dependencies": [
-            {"uuid": ids["bp_header"], "version": version}
+            {"uuid": ids["bp_header"], "version": list(version)}
         ],
     }
 
@@ -32,21 +32,21 @@ def build_bp_manifest(ids: dict[str, str], version: list[int]) -> dict:
             "name": "Playerheads",
             "description": "BedrockViewer-powered player head behavior pack.",
             "uuid": ids["bp_header"],
-            "version": version,
-            "min_engine_version": ENGINE_VERSION,
+            "version": list(version),
+            "min_engine_version": list(ENGINE_VERSION),
         },
         "modules": [
-            {"type": "data", "uuid": ids["bp_module"], "version": version},
+            {"type": "data", "uuid": ids["bp_module"], "version": list(version)},
             {
                 "type": "script",
                 "language": "javascript",
                 "uuid": ids["bp_script"],
-                "version": version,
+                "version": list(version),
                 "entry": "scripts/main.js",
             },
         ],
         "dependencies": [
             {"module_name": "@minecraft/server", "version": SERVER_MODULE_VERSION},
-            {"uuid": ids["rp_header"], "version": version},
+            {"uuid": ids["rp_header"], "version": list(version)},
         ],
     }

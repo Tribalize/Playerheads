@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 import zipfile
@@ -42,6 +43,26 @@ class PackGenerationTests(unittest.TestCase):
         joined = "\n".join(str(path).replace("\\", "/") for path in paths)
         self.assertIn("textures/blocks/skulls/pptribalize.png", joined)
         self.assertIn("textures/items/skulls/pptribalize.png", joined)
+
+    def test_recipes_convert_between_generated_head_and_block_identifiers(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            builder = PackBuilder(root, IDS, [1, 0, 0])
+            builder.initialize()
+            builder.add_head(Head("PPTribalize", "PPTribalize"))
+            builder.finish(include_trader_trades=False)
+
+            to_block = json.loads(
+                (root / "Playerheads_BP" / "recipes" / "pptribalize_toBlock.json").read_text(encoding="utf-8")
+            )["minecraft:recipe_shapeless"]
+            to_head = json.loads(
+                (root / "Playerheads_BP" / "recipes" / "pptribalize_toHead.json").read_text(encoding="utf-8")
+            )["minecraft:recipe_shapeless"]
+
+        self.assertEqual([{"item": "bph:pptribalize_head"}], to_block["ingredients"])
+        self.assertEqual({"item": "bph:pptribalize_head_block", "count": 1}, to_block["result"])
+        self.assertEqual([{"item": "bph:pptribalize_head_block"}], to_head["ingredients"])
+        self.assertEqual({"item": "bph:pptribalize_head", "count": 1}, to_head["result"])
 
     def test_mcaddon_root_layout(self):
         with tempfile.TemporaryDirectory() as tmp:

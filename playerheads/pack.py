@@ -68,8 +68,8 @@ class PackBuilder:
         write_json(self.bp_dir / "blocks" / f"{slug}_head.json", self._bp_block(block_id, head))
         write_json(self.rp_dir / "items" / f"{slug}_head.json", self._rp_item(item_id, slug))
         write_json(self.rp_dir / "attachables" / f"{slug}_head.json", self._attachable(item_id, slug))
-        write_json(self.bp_dir / "recipes" / f"{slug}_toBlock.json", self._recipe(item_id, f"{block_id}_item"))
-        write_json(self.bp_dir / "recipes" / f"{slug}_toHead.json", self._recipe(f"{block_id}_item", item_id))
+        write_json(self.bp_dir / "recipes" / f"{slug}_toBlock.json", self._recipe(item_id, block_id))
+        write_json(self.bp_dir / "recipes" / f"{slug}_toHead.json", self._recipe(block_id, item_id))
         self._write_geometry(slug)
 
     def finish(self, include_trader_trades: bool) -> None:

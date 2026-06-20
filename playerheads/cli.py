@@ -61,32 +61,41 @@ def resolve_heads(args) -> list:
     return load_heads_file(args.heads_file)
 
 
-def main(argv=None) -> None:
+def main(
+    argv=None,
+    *,
+    client_factory=BedrockViewerClient,
+    builder_factory=PackBuilder,
+    process_skin=process_skin_bytes,
+    ids_path: str | Path = DEFAULT_IDS_FILE,
+    version_file: str | Path = DEFAULT_VERSION_FILE,
+    root: str | Path = ROOT,
+    missing_texture_checker=missing_texture_paths,
+) -> None:
     args = parse_args(argv)
     heads = resolve_heads(args)
-    version = args.version or load_version()
-    if not args.no_version_bump:
-        save_version(version)
+    version_file = Path(version_file)
+    version = args.version or load_version(version_file)
 
-    root = ROOT
-    ids = load_or_create_ids(DEFAULT_IDS_FILE)
-    builder = PackBuilder(root, ids, version)
+    root = Path(root)
+    ids = load_or_create_ids(ids_path)
+    builder = builder_factory(root, ids, version)
     builder.initialize()
-    client = BedrockViewerClient()
+    client = client_factory()
 
     for head in heads:
         profile = client.fetch_profile(head.name)
         if not profile.has_skin:
             print(f"Warning: BedrockViewer reports skin=false for {head.name}.", file=sys.stderr)
         skin_bytes = client.download_skin(profile.xuid)
-        process_skin_bytes(
+        process_skin(
             skin_bytes,
             builder.rp_dir / "textures" / "blocks" / "skulls" / f"{head.slug}.png",
             builder.rp_dir / "textures" / "items" / "skulls" / f"{head.slug}.png",
         )
         builder.add_head(head)
 
-    missing = missing_texture_paths(builder.rp_dir, heads)
+    missing = missing_texture_checker(builder.rp_dir, heads)
     if args.require_textures and missing:
         for path in missing:
             print(f"Missing texture: {path}", file=sys.stderr)
@@ -96,4 +105,6 @@ def main(argv=None) -> None:
 
     output = Path(args.output) if args.output else root / "dist" / f"Playerheads-v{'.'.join(str(part) for part in version)}.mcaddon"
     builder.build_mcaddon(output)
+    if not args.no_version_bump:
+        save_version(version, version_file)
     print(f"Built {output}")

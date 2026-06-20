@@ -1,0 +1,80 @@
+name: Build Playerheads Add-on
+
+on:
+  workflow_dispatch:
+    inputs:
+      player_names:
+        description: Comma-separated player names to build instead of heads_file.
+        required: false
+        type: string
+      heads_file:
+        description: Path to the heads JSON file.
+        required: true
+        default: heads.json
+        type: string
+      version:
+        description: Add-on version to stamp into the build.
+        required: true
+        default: 1.0.0
+        type: string
+      include_trader_trades:
+        description: Generate wandering trader trades for all selected heads.
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Build add-on
+        env:
+          PLAYER_NAMES: ${{ github.event.inputs.player_names }}
+          HEADS_FILE: ${{ github.event.inputs.heads_file }}
+          ADDON_VERSION: ${{ github.event.inputs.version }}
+          INCLUDE_TRADER_TRADES: ${{ github.event.inputs.include_trader_trades }}
+        run: |
+          mkdir -p dist
+          EXTRA_ARGS=""
+          if [ "$INCLUDE_TRADER_TRADES" = "true" ]; then
+            EXTRA_ARGS="--include-trader-trades"
+          fi
+
+          if [ -n "$PLAYER_NAMES" ]; then
+            python build_playerheads.py \
+              --heads "$PLAYER_NAMES" \
+              --version "$ADDON_VERSION" \
+              --no-version-bump \
+              --require-textures \
+              --output "dist/Playerheads-v${ADDON_VERSION}.mcaddon" \
+              $EXTRA_ARGS
+          else
+            python build_playerheads.py \
+              --heads-file "$HEADS_FILE" \
+              --version "$ADDON_VERSION" \
+              --no-version-bump \
+              --require-textures \
+              --output "dist/Playerheads-v${ADDON_VERSION}.mcaddon" \
+              $EXTRA_ARGS
+          fi
+
+      - name: Upload add-on artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Playerheads-v${{ github.event.inputs.version }}
+          path: dist/Playerheads-v${{ github.event.inputs.version }}.mcaddon

@@ -220,7 +220,7 @@ class PackBuilder:
             {
                 "condition": "q.block_state('minecraft:block_face') == 'east'",
                 "components": {
-                    "minecraft:transformation": {"rotation": [0, 180, 0]},
+                    "minecraft:transformation": {"rotation": [0, -90, 0]},
                     "minecraft:collision_box": side_box,
                     "minecraft:selection_box": side_box,
                 },
@@ -228,7 +228,7 @@ class PackBuilder:
             {
                 "condition": "q.block_state('minecraft:block_face') == 'south'",
                 "components": {
-                    "minecraft:transformation": {"rotation": [0, 90, 0]},
+                    "minecraft:transformation": {"rotation": [0, 180, 0]},
                     "minecraft:collision_box": side_box,
                     "minecraft:selection_box": side_box,
                 },
@@ -236,7 +236,7 @@ class PackBuilder:
             {
                 "condition": "q.block_state('minecraft:block_face') == 'west'",
                 "components": {
-                    "minecraft:transformation": {"rotation": [0, 0, 0]},
+                    "minecraft:transformation": {"rotation": [0, 90, 0]},
                     "minecraft:collision_box": side_box,
                     "minecraft:selection_box": side_box,
                 },
@@ -244,7 +244,6 @@ class PackBuilder:
             {
                 "condition": "q.block_state('minecraft:block_face') == 'north'",
                 "components": {
-                    "minecraft:transformation": {"rotation": [0, 270, 0]},
                     "minecraft:collision_box": side_box,
                     "minecraft:selection_box": side_box,
                 },
@@ -255,7 +254,7 @@ class PackBuilder:
                     "q.block_state('bph:head_rotation') >= 4 && q.block_state('bph:head_rotation') <= 7"
                 ),
                 "components": {
-                    "minecraft:transformation": {"rotation": [0, 90, 0]},
+                    "minecraft:transformation": {"rotation": [0, -90, 0]},
                     "minecraft:collision_box": floor_box,
                     "minecraft:selection_box": floor_box,
                 },
@@ -277,7 +276,7 @@ class PackBuilder:
                     "q.block_state('bph:head_rotation') >= 12"
                 ),
                 "components": {
-                    "minecraft:transformation": {"rotation": [0, 270, 0]},
+                    "minecraft:transformation": {"rotation": [0, 90, 0]},
                     "minecraft:collision_box": floor_box,
                     "minecraft:selection_box": floor_box,
                 },

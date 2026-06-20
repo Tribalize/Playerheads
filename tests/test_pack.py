@@ -141,6 +141,43 @@ class PackGenerationTests(unittest.TestCase):
         self.assertIn("minecraft:placement_position", block["description"]["traits"])
         self.assertIn("bph:head_rotation", block["description"]["states"])
         self.assertTrue(any("minecraft:block_face') == 'east'" in item["condition"] for item in block["permutations"]))
+        rotations_by_condition = {
+            item["condition"]: item["components"].get("minecraft:transformation", {}).get("rotation")
+            for item in block["permutations"]
+        }
+        self.assertEqual(
+            [0, -90, 0],
+            rotations_by_condition["q.block_state('minecraft:block_face') == 'east'"],
+        )
+        self.assertEqual(
+            [0, 180, 0],
+            rotations_by_condition["q.block_state('minecraft:block_face') == 'south'"],
+        )
+        self.assertEqual(
+            [0, 90, 0],
+            rotations_by_condition["q.block_state('minecraft:block_face') == 'west'"],
+        )
+        self.assertIsNone(rotations_by_condition["q.block_state('minecraft:block_face') == 'north'"])
+        self.assertEqual(
+            [0, -90, 0],
+            rotations_by_condition[
+                "q.block_state('minecraft:block_face') == 'up' && "
+                "q.block_state('bph:head_rotation') >= 4 && q.block_state('bph:head_rotation') <= 7"
+            ],
+        )
+        self.assertEqual(
+            [0, 180, 0],
+            rotations_by_condition[
+                "q.block_state('minecraft:block_face') == 'up' && "
+                "q.block_state('bph:head_rotation') >= 8 && q.block_state('bph:head_rotation') <= 11"
+            ],
+        )
+        self.assertEqual(
+            [0, 90, 0],
+            rotations_by_condition[
+                "q.block_state('minecraft:block_face') == 'up' && q.block_state('bph:head_rotation') >= 12"
+            ],
+        )
         self.assertIn("playerPlaceBlock", script)
         self.assertIn('withState("bph:head_rotation", rot)', script)
 

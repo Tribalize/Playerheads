@@ -94,6 +94,56 @@ class PackGenerationTests(unittest.TestCase):
                 (root / "Playerheads_BP" / "trading" / "economy_trades" / "wandering_trader_trades.json").is_file()
             )
 
+    def test_geometry_maps_full_skin_sheet_head_faces(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            builder = PackBuilder(root, IDS, [1, 0, 0])
+            builder.initialize()
+            builder.add_head(Head("PPTribalize", "PPTribalize"))
+
+            block_geo = json.loads(
+                (root / "Playerheads_RP" / "models" / "blocks" / "pptribalize_head.geo.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            attachable_geo = json.loads(
+                (root / "Playerheads_RP" / "models" / "entity" / "pptribalize_head_attachable.geo.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+
+        block_cube = block_geo["minecraft:geometry"][0]["bones"][0]["cubes"][0]
+        attachable_cube = attachable_geo["minecraft:geometry"][0]["bones"][0]["cubes"][0]
+        expected_uv = {
+            "north": {"uv": [8, 8], "uv_size": [8, 8]},
+            "south": {"uv": [24, 8], "uv_size": [8, 8]},
+            "east": {"uv": [16, 8], "uv_size": [8, 8]},
+            "west": {"uv": [0, 8], "uv_size": [8, 8]},
+            "up": {"uv": [8, 0], "uv_size": [8, 8]},
+            "down": {"uv": [16, 0], "uv_size": [8, 8]},
+        }
+        self.assertEqual(expected_uv, block_cube["uv"])
+        self.assertEqual(expected_uv, attachable_cube["uv"])
+
+    def test_blocks_and_script_support_placement_rotation(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            builder = PackBuilder(root, IDS, [1, 0, 0])
+            builder.initialize()
+            builder.add_head(Head("PPTribalize", "PPTribalize"))
+            builder.finish(include_trader_trades=False)
+
+            block = json.loads(
+                (root / "Playerheads_BP" / "blocks" / "pptribalize_head.json").read_text(encoding="utf-8")
+            )["minecraft:block"]
+            script = (root / "Playerheads_BP" / "scripts" / "main.js").read_text(encoding="utf-8")
+
+        self.assertIn("minecraft:placement_position", block["description"]["traits"])
+        self.assertIn("bph:head_rotation", block["description"]["states"])
+        self.assertTrue(any("minecraft:block_face') == 'east'" in item["condition"] for item in block["permutations"]))
+        self.assertIn("playerPlaceBlock", script)
+        self.assertIn('withState("bph:head_rotation", rot)', script)
+
 
 if __name__ == "__main__":
     unittest.main()

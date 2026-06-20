@@ -15,6 +15,14 @@ from .trader import write_trade_table
 BP_NAME = "Playerheads_BP"
 RP_NAME = "Playerheads_RP"
 NAMESPACE = "bph"
+HEAD_UV = {
+    "north": {"uv": [8, 8], "uv_size": [8, 8]},
+    "south": {"uv": [24, 8], "uv_size": [8, 8]},
+    "east": {"uv": [16, 8], "uv_size": [8, 8]},
+    "west": {"uv": [0, 8], "uv_size": [8, 8]},
+    "up": {"uv": [8, 0], "uv_size": [8, 8]},
+    "down": {"uv": [16, 0], "uv_size": [8, 8]},
+}
 
 
 def write_json(path: Path, data: dict) -> None:
@@ -114,18 +122,54 @@ class PackBuilder:
         return {
             "format_version": "1.20.80",
             "minecraft:block": {
-                "description": {"identifier": block_id, "menu_category": {"category": "construction"}},
+                "description": {
+                    "identifier": block_id,
+                    "menu_category": {"category": "construction"},
+                    "traits": {
+                        "minecraft:placement_position": {
+                            "enabled_states": ["minecraft:block_face"],
+                        }
+                    },
+                    "states": {
+                        "bph:head_rotation": {
+                            "values": {"min": 0, "max": 15},
+                        }
+                    },
+                },
                 "components": {
                     "minecraft:display_name": f"tile.{block_id}.name",
-                    "minecraft:geometry": f"geometry.{head.slug}_head",
+                    "minecraft:geometry": {
+                        "identifier": f"geometry.{head.slug}_head",
+                        "bone_visibility": {
+                            "up_0": (
+                                "q.block_state('minecraft:block_face') == 'up' && "
+                                "math.mod(q.block_state('bph:head_rotation'), 4) == 0"
+                            ),
+                            "up_22_5": (
+                                "q.block_state('minecraft:block_face') == 'up' && "
+                                "math.mod(q.block_state('bph:head_rotation'), 4) == 1"
+                            ),
+                            "up_45": (
+                                "q.block_state('minecraft:block_face') == 'up' && "
+                                "math.mod(q.block_state('bph:head_rotation'), 4) == 2"
+                            ),
+                            "up_67_5": (
+                                "q.block_state('minecraft:block_face') == 'up' && "
+                                "math.mod(q.block_state('bph:head_rotation'), 4) == 3"
+                            ),
+                            "side": "q.block_state('minecraft:block_face') != 'up'",
+                        },
+                    },
                     "minecraft:material_instances": {
                         "*": {"texture": f"{head.slug}_head", "render_method": "alpha_test"}
                     },
                     "minecraft:loot": "loot_tables/empty.json",
+                    "minecraft:placement_filter": {"conditions": [{"allowed_faces": ["up", "side"]}]},
                     "minecraft:destructible_by_mining": {"seconds_to_destroy": 0.8},
                     "minecraft:collision_box": {"origin": [-4, 0, -4], "size": [8, 8, 8]},
                     "minecraft:selection_box": {"origin": [-4, 0, -4], "size": [8, 8, 8]},
                 },
+                "permutations": self._placement_permutations(),
             },
         }
 
@@ -169,6 +213,77 @@ class PackBuilder:
             },
         }
 
+    def _placement_permutations(self) -> list[dict]:
+        side_box = {"origin": [-4, 3, 0], "size": [8, 8, 8]}
+        floor_box = {"origin": [-4, 0, -4], "size": [8, 8, 8]}
+        return [
+            {
+                "condition": "q.block_state('minecraft:block_face') == 'east'",
+                "components": {
+                    "minecraft:transformation": {"rotation": [0, 180, 0]},
+                    "minecraft:collision_box": side_box,
+                    "minecraft:selection_box": side_box,
+                },
+            },
+            {
+                "condition": "q.block_state('minecraft:block_face') == 'south'",
+                "components": {
+                    "minecraft:transformation": {"rotation": [0, 90, 0]},
+                    "minecraft:collision_box": side_box,
+                    "minecraft:selection_box": side_box,
+                },
+            },
+            {
+                "condition": "q.block_state('minecraft:block_face') == 'west'",
+                "components": {
+                    "minecraft:transformation": {"rotation": [0, 0, 0]},
+                    "minecraft:collision_box": side_box,
+                    "minecraft:selection_box": side_box,
+                },
+            },
+            {
+                "condition": "q.block_state('minecraft:block_face') == 'north'",
+                "components": {
+                    "minecraft:transformation": {"rotation": [0, 270, 0]},
+                    "minecraft:collision_box": side_box,
+                    "minecraft:selection_box": side_box,
+                },
+            },
+            {
+                "condition": (
+                    "q.block_state('minecraft:block_face') == 'up' && "
+                    "q.block_state('bph:head_rotation') >= 4 && q.block_state('bph:head_rotation') <= 7"
+                ),
+                "components": {
+                    "minecraft:transformation": {"rotation": [0, 90, 0]},
+                    "minecraft:collision_box": floor_box,
+                    "minecraft:selection_box": floor_box,
+                },
+            },
+            {
+                "condition": (
+                    "q.block_state('minecraft:block_face') == 'up' && "
+                    "q.block_state('bph:head_rotation') >= 8 && q.block_state('bph:head_rotation') <= 11"
+                ),
+                "components": {
+                    "minecraft:transformation": {"rotation": [0, 180, 0]},
+                    "minecraft:collision_box": floor_box,
+                    "minecraft:selection_box": floor_box,
+                },
+            },
+            {
+                "condition": (
+                    "q.block_state('minecraft:block_face') == 'up' && "
+                    "q.block_state('bph:head_rotation') >= 12"
+                ),
+                "components": {
+                    "minecraft:transformation": {"rotation": [0, 270, 0]},
+                    "minecraft:collision_box": floor_box,
+                    "minecraft:selection_box": floor_box,
+                },
+            },
+        ]
+
     def _write_geometry(self, slug: str) -> None:
         block_geo = {
             "format_version": "1.12.0",
@@ -181,10 +296,33 @@ class PackBuilder:
                     },
                     "bones": [
                         {
-                            "name": "head",
+                            "name": "up_0",
                             "pivot": [0, 0, 0],
-                            "cubes": [{"origin": [-4, 0, -4], "size": [8, 8, 8], "uv": [0, 0]}],
-                        }
+                            "cubes": [{"origin": [-4, 0, -4], "size": [8, 8, 8], "uv": HEAD_UV}],
+                        },
+                        {
+                            "name": "up_22_5",
+                            "pivot": [0, 0, 0],
+                            "rotation": [0, 22.5, 0],
+                            "cubes": [{"origin": [-4, 0, -4], "size": [8, 8, 8], "uv": HEAD_UV}],
+                        },
+                        {
+                            "name": "up_45",
+                            "pivot": [0, 0, 0],
+                            "rotation": [0, 45, 0],
+                            "cubes": [{"origin": [-4, 0, -4], "size": [8, 8, 8], "uv": HEAD_UV}],
+                        },
+                        {
+                            "name": "up_67_5",
+                            "pivot": [0, 0, 0],
+                            "rotation": [0, 67.5, 0],
+                            "cubes": [{"origin": [-4, 0, -4], "size": [8, 8, 8], "uv": HEAD_UV}],
+                        },
+                        {
+                            "name": "side",
+                            "pivot": [0, 7, 4],
+                            "cubes": [{"origin": [-4, 3, 0], "size": [8, 8, 8], "uv": HEAD_UV}],
+                        },
                     ],
                 }
             ],
@@ -206,7 +344,7 @@ class PackBuilder:
                                 {
                                     "origin": [-4, 24, -4],
                                     "size": [8, 8, 8],
-                                    "uv": [0, 0],
+                                    "uv": HEAD_UV,
                                     "inflate": 0.5,
                                 }
                             ],
@@ -227,6 +365,14 @@ class PackBuilder:
 const headArray = [
 {entries}
 ];
+
+world.afterEvents.playerPlaceBlock.subscribe((event) => {{
+    const {{ player, block }} = event;
+    if (!block.typeId.startsWith("{NAMESPACE}:") || !block.typeId.endsWith("_head_block")) return;
+    const yaw = ((player.getRotation().y % 360) + 360) % 360;
+    const rot = Math.round(yaw / 22.5) % 16;
+    block.setPermutation(block.permutation.withState("bph:head_rotation", rot));
+}});
 
 world.afterEvents.entityDie.subscribe((event) => {{
     const deadEntity = event.deadEntity;

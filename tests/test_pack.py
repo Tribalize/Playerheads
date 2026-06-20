@@ -82,6 +82,18 @@ class PackGenerationTests(unittest.TestCase):
         self.assertFalse(any(name.startswith("behavior_packs/") for name in names))
         self.assertFalse(any(name.startswith("resource_packs/") for name in names))
 
+    def test_trader_enabled_writes_trade_table(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            builder = PackBuilder(root, IDS, [1, 0, 0])
+            builder.initialize()
+            builder.add_head(Head("PPTribalize", "PPTribalize"))
+            builder.finish(include_trader_trades=True)
+
+            self.assertTrue(
+                (root / "Playerheads_BP" / "trading" / "economy_trades" / "wandering_trader_trades.json").is_file()
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

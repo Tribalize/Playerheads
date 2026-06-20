@@ -16,6 +16,7 @@ class DocsWorkflowTests(unittest.TestCase):
         text = (ROOT / ".github" / "workflows" / "build-addon.yml").read_text(encoding="utf-8")
         self.assertIn("include_trader_trades", text)
         self.assertIn("default: false", text)
+        self.assertIn('if [ "$INCLUDE_TRADER_TRADES" = "true" ]; then', text)
         self.assertIn("--include-trader-trades", text)
 
 

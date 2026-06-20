@@ -6,8 +6,8 @@ Playerheads builds a Minecraft Bedrock add-on that turns selected players into p
 
 Player data comes from BedrockViewer:
 
-- Profile JSON: `/profile/<gamertag>/json`
-- Skin download: `/download-skin/<xuid>`
+- Profile JSON: `https://bedrockviewer.com/profile/<gamertag>/json`
+- Skin download: `https://bedrockviewer.com/download-skin/<xuid>`
 
 ## Build Locally
 
